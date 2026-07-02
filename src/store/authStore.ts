@@ -43,7 +43,11 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
   },
 
   logout: async () => {
-    await client.logout()
-    set({ currentUser: null })
+    // Always end the client session, even if the server call fails.
+    try {
+      await client.logout()
+    } finally {
+      set({ currentUser: null })
+    }
   },
 }))

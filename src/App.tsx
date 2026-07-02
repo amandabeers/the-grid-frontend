@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { BrowserRouter, Navigate, Route, Routes, useNavigate } from 'react-router-dom'
-import { AuthGuard } from './auth/AuthGuard'
+import { AuthGuard, GuestGuard } from './auth/AuthGuard'
 import { Login } from './pages/Login'
 import { Register } from './pages/Register'
 import { useAuthStore } from './store/authStore'
@@ -15,8 +15,11 @@ function Stub({ title }: { title: string }) {
   const navigate = useNavigate()
 
   const onLogout = async () => {
-    await logout()
-    navigate('/login', { replace: true })
+    try {
+      await logout()
+    } finally {
+      navigate('/login', { replace: true })
+    }
   }
 
   return (
@@ -45,8 +48,10 @@ function AppRoutes() {
 
   return (
     <Routes>
-      <Route path="/login" element={<Login />} />
-      <Route path="/register" element={<Register />} />
+      <Route element={<GuestGuard />}>
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+      </Route>
       <Route element={<AuthGuard />}>
         <Route path="/" element={<Stub title="Dashboard" />} />
         <Route path="/grid" element={<Stub title="My Grid" />} />

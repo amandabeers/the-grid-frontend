@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
+import type { Location } from 'react-router-dom'
 import { useAuthStore } from '../store/authStore'
 import type { LoginRequest } from '../types'
 import { AuthLayout, FieldError } from './authUi'
@@ -23,6 +24,7 @@ export function Login() {
     try {
       await login(values)
       const from = (location.state as { from?: Location } | null)?.from?.pathname ?? '/'
+      // `Location` above is react-router's, matching what AuthGuard stores.
       navigate(from, { replace: true })
     } catch {
       // Deliberately generic — don't reveal whether the email exists (SPEC §5.2).

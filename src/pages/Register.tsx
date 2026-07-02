@@ -32,15 +32,13 @@ export function Register() {
       await registerUser(body)
       navigate('/grid', { replace: true })
     } catch (err) {
-      // Map the server's specific field error inline (SPEC §5.1).
-      const message =
-        err instanceof ApiError ? err.message : 'Something went wrong. Try again in a moment.'
-      const lower = message.toLowerCase()
-      if (lower.includes('username')) {
-        setError('username', { message })
-      } else if (lower.includes('email')) {
-        setError('email', { message })
+      // Map the server's specific field error inline (SPEC §5.1). The backend
+      // identifies the offending field on 409 conflicts via ApiError.field.
+      if (err instanceof ApiError && (err.field === 'username' || err.field === 'email')) {
+        setError(err.field, { message: err.message })
       } else {
+        const message =
+          err instanceof ApiError ? err.message : 'Something went wrong. Try again in a moment.'
         setError('root', { message })
       }
     }
