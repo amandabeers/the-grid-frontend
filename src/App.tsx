@@ -3,27 +3,10 @@ import reactLogo from './assets/react.svg'
 import viteLogo from './assets/vite.svg'
 import heroImg from './assets/hero.png'
 import './App.css'
-import apiUrl from './apiConfig'
-import axios from 'axios'
+// import apiUrl from './apiConfig'
 
 function App() {
   const [count, setCount] = useState(0)
-
-  const fetchConferences = () => {
-    axios({
-      method: 'GET',
-      url: `${apiUrl}/conferences`
-    })
-      .then((res: any) => {
-        console.log(res.data)
-      })
-      .catch(console.error)
-  }
-
-  useEffect(() => {
-    fetchConferences()
-  }, [])
-
 
   return (
     <>
