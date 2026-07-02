@@ -11,9 +11,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project status
 
-This is the frontend for **The Grid**, a desktop-only NFL season-long pick'em web app. The repo is at an **early scaffold stage**: it is essentially a fresh Vite + React 19 + TypeScript template (`src/App.tsx` is still largely the starter page) with a single backend API call wired up (`GET /conferences`).
+This is the frontend for **The Grid**, a desktop-only NFL season-long pick'em web app. The repo is at an **early scaffold stage**: the app shell is wired up (router, TanStack Query provider, Tailwind, a typed `fetch` API client, and Zustand auth store) with the auth flow — register, login, session rehydration, and route guards — implemented. Everything past auth (dashboard, grid, leaderboards) is still stubbed.
 
-**`SPEC.md` is the authoritative product specification** — it describes the full intended UI (routes, pages, pick-grid interactions, leaderboards, comparison views) and visual design system. Treat it as the target to build toward and the source of truth for product behavior. **However, most of what SPEC.md describes is not yet implemented.** The specced libraries are now installed (except Zustand — see Stack gap) but **most are not yet wired up**. Check `package.json` before importing.
+**`SPEC.md` is the authoritative product specification** — it describes the full intended UI (routes, pages, pick-grid interactions, leaderboards, comparison views) and visual design system. Treat it as the target to build toward and the source of truth for product behavior. **However, most of what SPEC.md describes is not yet implemented** (only the auth surface exists so far). The specced libraries are all installed; check `package.json` before importing.
 
 Business rules (pick-lock timing, the "at least one Tie" rule, scoring) are enforced by a separate backend, which is authoritative. The frontend only mirrors them for UX. The companion backend `SPEC.md §7` referenced in the spec lives in the backend repo, not here.
 
@@ -29,21 +29,21 @@ Business rules (pick-lock timing, the "at least one Tie" rule, scoring) are enfo
 ## Architecture & key files
 
 - **`src/apiConfig.ts`** — resolves the backend base URL by hostname: `localhost` → `http://localhost:${VITE_API_PORT}` (development), otherwise `VITE_PROD_API_URL` (production). Import the default export as the API base for all requests. Env vars come from `.env` (git-ignored): `VITE_API_PORT`, `VITE_PROD_API_URL`.
-- **HTTP** — SPEC §7 specifies a native-`fetch` typed API client layer (`src/api/client.ts`) + TanStack Query; neither exists yet. `axios` has been removed from the deps, but `src/App.tsx` still has a stray `axios` import (from the `fetchConferences` example) that will error until refactored.
+- **HTTP** — `src/api/client.ts` is the native-`fetch` typed API client (SPEC §7): `credentials: 'include'`, a typed `ApiError`, text-first body parsing, and a double-submit `X-XSRF-TOKEN` header on mutating requests. TanStack Query is wired via `QueryClientProvider` in `src/App.tsx` (no queries yet beyond auth, which uses the store). `axios` is not a dependency.
 - **`src/main.tsx`** — app entry; mounts `<App>` in `<StrictMode>`.
 - **Build/compiler** — Vite with `@vitejs/plugin-react` and the **React Compiler** enabled via `@rolldown/plugin-babel` + `reactCompilerPreset()` in `vite.config.ts`. The compiler auto-memoizes; avoid manual `useMemo`/`useCallback` micro-optimizations unless profiling shows a need.
 - **TypeScript** — project-references setup: `tsconfig.json` → `tsconfig.app.json` (app code) + `tsconfig.node.json` (build tooling).
 - **Static assets** — `public/` holds `favicon.svg` and `icons.svg` (SVG sprite referenced via `<use href="/icons.svg#...">`); imported assets live in `src/assets/`.
 
-## Stack gap (important)
+## Stack
 
-SPEC.md §2 lists the *intended* stack. Nearly all of it is now installed; only Zustand is deliberately deferred.
+SPEC.md §2 lists the *intended* stack; the whole thing is now installed and the core is wired up.
 
-- **Installed**: React 19, react-dom, React Router v6 (`react-router-dom`), TanStack Query (`@tanstack/react-query`), React Hook Form, date-fns, Tailwind CSS (+ `postcss`, `autoprefixer`), Vite, TypeScript, ESLint, Vitest.
-- **Deliberately deferred**: Zustand — held off until a concrete need for shared client state emerges. SPEC §2 lists it as an alternative to React Context; reach for Context first.
-- **Removed**: `axios` — no longer a dependency (SPEC §7 specifies a native-`fetch` typed client). Note `src/App.tsx` still imports it and will error until refactored.
+- **Installed**: React 19, react-dom, React Router v6 (`react-router-dom`), TanStack Query (`@tanstack/react-query`), Zustand, React Hook Form, date-fns, Tailwind CSS (+ `postcss`, `autoprefixer`), Vite, TypeScript, ESLint, Vitest.
+- **Client state**: Zustand is used for auth (`src/store/authStore.ts`). SPEC §2 lists it as an alternative to React Context; both are acceptable — reach for whichever fits the state's scope.
+- **Not a dependency**: `axios` — SPEC §7 specifies the native-`fetch` typed client (`src/api/client.ts`).
 
-Although the packages are installed, most are **not yet wired up** (no Tailwind directives/config `content` globs, no `QueryClientProvider`, no router). Add the configuration for each as part of the first feature that needs it. Note SPEC.md says "React 18+" but the repo is on React 19.
+Wired up: Tailwind (directives in `src/index.css`, `content` globs in `tailwind.config.js`), `QueryClientProvider` and the router in `src/App.tsx`. Features past auth still need building. Note SPEC.md says "React 18+" but the repo is on React 19.
 
 ## Design system (from SPEC.md §3)
 

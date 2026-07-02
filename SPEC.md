@@ -418,7 +418,7 @@ Dropdown or link-pair (prev/next) used in the week views. Props: `currentWeek: n
 
 All HTTP calls go through a typed client module (`src/api/client.ts`). It wraps `fetch` with:
 
-- Base URL from `VITE_API_BASE_URL`.
+- Base URL resolved by `src/apiConfig.ts` from hostname: `localhost` → `http://localhost:${VITE_API_PORT}` (default `3001`), otherwise `VITE_PROD_API_URL`.
 - Automatic `credentials: 'include'` on every request (session cookies).
 - A typed `ApiError` class with `status` and `message`, thrown on non-2xx responses. The `423 Locked` status is caught and displayed as "The season has started. Picks are locked."
 - Response bodies typed via shared TypeScript interfaces (§8).
@@ -626,10 +626,13 @@ The client polls `GET /api/seasons/:year` every 60 seconds while status is `pick
 ## 11. Build & Environment
 
 ```
-VITE_API_BASE_URL=http://localhost:3001
+# Development (hostname === 'localhost')
+VITE_API_PORT=3001
+# Production
+VITE_PROD_API_URL=https://api.example.com
 ```
 
-`vite.config.ts` should proxy `/api` to the backend in development to avoid CORS issues.
+`src/apiConfig.ts` picks the base URL by hostname (see §7). The client calls the backend directly with `credentials: 'include'`, so the backend must allow the frontend origin via CORS (`Access-Control-Allow-Credentials`).
 
 ---
 
